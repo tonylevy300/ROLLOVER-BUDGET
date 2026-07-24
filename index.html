@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>July Sprint | Master Command Center V5.1</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,700;0,800;1,700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <style>
+        body { 
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif; 
+            background-color: #090d16; 
+            color: #f8fafc;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .mono { font-family: 'JetBrains Mono', monospace; }
+
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .glass-card {
+            background: rgba(30, 41, 59, 0.5);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .modal-active { display: flex !important; }
+
+        @keyframes pulse-soft {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.4; transform: scale(0.95); }
+        }
+        .live-pulse { animation: pulse-soft 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+
+        /* iPhone 15 & iOS Touch Optimizations */
+        * { -webkit-tap-highlight-color: transparent; }
+        
+        body { 
+            padding-bottom: calc(5rem + env(safe-area-inset-bottom, 24px)); 
+        }
+
+        nav.sticky-nav {
+            padding-top: calc(0.75rem + env(safe-area-inset-top, 0px));
+        }
+
+        /* Prevent auto-zoom on input focus in iOS Safari */
+        @media screen and (max-width: 768px) {
+            input[type="text"],
+            input[type="number"],
+            select {
+                font-size: 16px !important;
+            }
+        }
+
+        /* Custom mobile range slider thumb */
+        input[type="range"]::-webkit-slider-thumb {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: #ea580c;
+            cursor: pointer;
+            -webkit-appearance: none;
+            box-shadow: 0 2px 8px rgba(234, 88, 12, 0.5);
+            border: 2px solid #ffffff;
+        }
+
+        .touch-target {
+            min-height: 44px;
+            min-width: 44px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 9999px; }
+    </style>
+</head>
+<body class="min-h-full flex flex-col justify-between selection:bg-[#ea580c] selection:text-white">
+
+    <!-- Sticky Navigation -->
+    <nav class="sticky top-0 z-50 glass-panel border-b border-slate-800/80 sticky-nav transition-all">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 py-3 flex justify-between items-center gap-2">
+            <div class="flex items-center gap-2.5 sm:gap-3 shrink-0">
+                <div class="w-9 h-9 sm:w-10 sm:h-10 bg-gradient-to-br from-[#00439c] to-blue-700 rounded-xl flex items-center justify-center text-white font-black italic text-lg sm:text-xl shadow-lg shadow-blue-900/30">A</div>
+                <div>
+                    <h1 class="text-[10px] sm:text-xs font-black uppercase tracking-widest text-slate-400 leading-none">July Master Audit</h1>
+                    <div class="flex items-center gap-1.5 mt-1">
+                        <span class="text-[9px] sm:text-[10px] font-bold text-[#ea580c] uppercase">V5.1 iPhone Edition</span>
+                        <span class="w-1.5 h-1.5 bg-[#ea580c] rounded-full live-pulse"></span>
+                        <span id="live-clock" class="text-[9px] sm:text-[10px] font-bold text-slate-400 mono">--:--:--</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2 sm:gap-4 text-right">
+                <button onclick="openSyncModal()" class="touch-target text-[10px] font-bold text-slate-200 bg-slate-800/90 hover:bg-slate-700 border border-slate-700 px-3 py-1.5 rounded-xl transition shadow-sm active:scale-95">
+                    <svg class="w-3.5 h-3.5 sm:w-3 sm:h-3 text-[#3b82f6]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                    <span class="hidden sm:inline ml-1">SYNC BANK</span>
+                </button>
+                <div>
+                    <p class="text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-wider">Capitec Cash</p>
+                    <p id="nav-balance" class="text-base sm:text-xl font-black text-white mono">R 8,626.36</p>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-5xl mx-auto px-4 sm:px-6 mt-4 sm:mt-8 space-y-6 sm:space-y-8 flex-1 w-full">
+
+        <!-- SECTION 0: DAILY SURVIVAL TRACKER -->
+        <section id="daily-tracker" class="bg-gradient-to-br from-slate-900 via-slate-900 to-slate-950 border border-slate-800 text-white rounded-[1.75rem] sm:rounded-[2rem] p-5 sm:p-8 shadow-2xl relative overflow-hidden">
+            <div class="absolute -top-12 -right-12 w-64 h-64 bg-[#ea580c]/10 rounded-full blur-3xl pointer-events-none"></div>
+            
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 sm:gap-8 relative z-10">
+                <div>
+                    <h2 class="text-xl sm:text-2xl font-black mb-1 flex items-center gap-2 tracking-tight">
+                        Daily Tracker <span class="text-[9px] bg-[#ea580c] text-white px-2.5 py-0.5 rounded-full uppercase tracking-widest font-bold shadow-md">Live Sync</span>
+                    </h2>
+                    <p class="text-slate-400 text-xs sm:text-sm mt-0.5 flex items-center gap-1.5">
+                        <svg class="w-3.5 h-3.5 text-slate-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                        <span id="cycle-info" class="font-medium text-slate-300">Calculating cycle...</span>
+                    </p>
+                </div>
+                
+                <div class="flex flex-col sm:flex-row items-center gap-4 sm:gap-6 bg-slate-950/80 border border-slate-800/80 p-4 sm:p-5 rounded-2xl sm:rounded-3xl w-full md:w-auto shadow-inner">
+                    <div class="text-center sm:text-left w-full sm:w-auto">
+                        <p class="text-[9px] sm:text-[10px] uppercase font-bold text-slate-400 tracking-wider">Today's Total Budget</p>
+                        <div class="flex items-baseline gap-1 justify-center sm:justify-start transition-colors duration-300" id="budget-container">
+                            <span class="text-slate-400 font-bold text-xl sm:text-2xl">R</span>
+                            <span id="live-today-budget" class="text-3xl sm:text-4xl font-black text-white mono">44.85</span>
+                        </div>
+                        <p class="text-[9px] sm:text-[10px] font-bold text-emerald-400 mt-1 bg-emerald-500/10 inline-block px-2.5 py-0.5 rounded-full border border-emerald-500/20">
+                            + R <span id="live-rollover">0.00</span> rollover
+                        </p>
+                    </div>
+                    <div class="hidden sm:block w-px h-16 bg-slate-800"></div>
+                    <div class="w-full sm:w-auto border-t border-slate-800 sm:border-0 pt-3 sm:pt-0 mt-1 sm:mt-0">
+                        <label class="text-[9px] sm:text-[10px] uppercase font-bold text-slate-400 block mb-1.5 text-center sm:text-left">Log Today's Spend</label>
+                        <div class="flex gap-2 w-full">
+                            <div class="relative flex-1 sm:flex-none">
+                                <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-sm">R</span>
+                                <input type="number" id="spend-input" inputmode="decimal" class="w-full sm:w-28 bg-slate-900 border border-slate-700 rounded-xl text-white font-bold pl-8 pr-3 py-2.5 text-base focus:outline-none focus:border-[#ea580c] transition-colors" placeholder="0.00">
+                            </div>
+                            <button onclick="lockInSpend()" class="bg-[#ea580c] hover:bg-[#c2410c] active:scale-95 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition-all shadow-lg shadow-[#ea580c]/30 whitespace-nowrap touch-target">
+                                Lock In
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 1: THE OVERVIEW -->
+        <section class="grid md:grid-cols-3 gap-4 sm:gap-6">
+            <div class="glass-card p-5 sm:p-6 rounded-2xl sm:rounded-3xl border border-slate-800 flex flex-col justify-between">
+                <div>
+                    <span class="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-1">Cleared Outflows</span>
+                    <div class="text-2xl sm:text-3xl font-black text-emerald-400 mono" id="stat-cleared">R 987.00</div>
+                    <p class="text-xs text-slate-400 mt-2 leading-relaxed">Confirmed paid today (Contribution, Woolies, Payflex, Uber, Google).</p>
+                </div>
+                <div class="mt-4 pt-3 border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-400">
+                    <span>Fixed Debts Status</span>
+                    <span class="text-emerald-400 font-bold">100% On Track</span>
+                </div>
+            </div>
+
+            <div class="glass-card p-5 sm:p-6 rounded-2xl sm:rounded-3xl border border-slate-800 flex flex-col justify-between">
+                <div>
+                    <span class="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-1">Pending Outflows</span>
+                    <div class="text-2xl sm:text-3xl font-black text-amber-400 mono" id="stat-pending">R 7,281.00</div>
+                    <p class="text-xs text-slate-400 mt-2 leading-relaxed">Includes PS5 deposit, bed base, curtains & remaining fixed bills.</p>
+                </div>
+                <div class="mt-4 pt-3 border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-400">
+                    <span>Unpaid Commitments</span>
+                    <span class="text-amber-400 font-bold" id="stat-pending-count">10 Items</span>
+                </div>
+            </div>
+
+            <div class="bg-gradient-to-br from-[#00439c] to-blue-900 p-5 sm:p-6 rounded-2xl sm:rounded-3xl border border-blue-700/50 flex flex-col justify-between shadow-xl">
+                <div>
+                    <span class="text-[10px] font-black uppercase tracking-widest text-blue-200 block mb-1">Final Survival Cash</span>
+                    <div class="text-2xl sm:text-3xl font-black text-white mono" id="stat-survival-pool">R 1,345.36</div>
+                    <p class="text-xs text-blue-100/80 mt-2 leading-relaxed">Safe unallocated cash pool for food & living across the next 30 days.</p>
+                </div>
+                <div class="mt-4 pt-3 border-t border-blue-800/60 flex items-center justify-between text-xs text-blue-200 font-bold">
+                    <span>Daily Baseline</span>
+                    <span class="text-emerald-300 text-sm mono font-black" id="stat-daily-baseline">R 44.85 / d</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 2: TRANSACTION LEDGER & EDIT SYSTEM -->
+        <section class="glass-panel p-5 sm:p-7 rounded-2xl sm:rounded-3xl border border-slate-800">
+            <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-3 mb-6">
+                <div>
+                    <h3 class="text-lg sm:text-xl font-black text-white tracking-tight flex items-center gap-2">
+                        Transaction Ledger 
+                        <span class="text-[10px] bg-blue-500/20 text-blue-300 border border-blue-500/30 px-2.5 py-0.5 rounded-full font-bold">Interactive</span>
+                    </h3>
+                    <p class="text-xs text-slate-400 mt-0.5">Check off items as they clear or edit values to dynamically recalculate your daily baseline.</p>
+                </div>
+                
+                <button onclick="openEditItemModal(null)" class="touch-target text-xs font-bold bg-[#00439c] hover:bg-blue-700 text-white px-4 py-2.5 rounded-xl transition-all shadow-md active:scale-95 flex items-center justify-center gap-1.5 self-start sm:self-auto">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path></svg>
+                    <span>Add Transaction</span>
+                </button>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-4 sm:gap-6">
+                <!-- Unpaid / Pending Items -->
+                <div class="space-y-3">
+                    <h4 class="text-xs font-black uppercase tracking-wider text-slate-400 flex items-center justify-between pb-2 border-b border-slate-800">
+                        <span class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-amber-400 live-pulse"></span> Pending Outflows</span>
+                        <span id="pending-total-badge" class="text-amber-400 font-bold mono">R 7,281.00</span>
+                    </h4>
+                    <div id="ledger-pending-items" class="space-y-2.5 max-h-[380px] overflow-y-auto pr-1">
+                        <!-- JS injected -->
+                    </div>
+                </div>
+
+                <!-- Confirmed Cleared Items -->
+                <div class="space-y-3">
+                    <h4 class="text-xs font-black uppercase tracking-wider text-slate-400 flex items-center justify-between pb-2 border-b border-slate-800">
+                        <span class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-emerald-400"></span> Confirmed Cleared</span>
+                        <span id="paid-total-badge" class="text-emerald-400 font-bold mono">R 987.00</span>
+                    </h4>
+                    <div id="ledger-paid-items" class="space-y-2.5 max-h-[380px] overflow-y-auto pr-1">
+                        <!-- JS injected -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 3: STUDIO & PS5 LAY-BY STRATEGY -->
+        <section class="grid md:grid-cols-2 gap-6">
+            <!-- Studio Upgrades Card -->
+            <div class="glass-panel p-6 sm:p-7 rounded-2xl sm:rounded-3xl border border-slate-800 relative overflow-hidden flex flex-col justify-between">
+                <div>
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-black text-white">Studio Environment</h3>
+                        <span class="text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30 px-2.5 py-0.5 rounded-full uppercase">Target: Sat July 25</span>
+                    </div>
+                    <p class="text-xs text-slate-400 mb-6">Physical upgrades required to turn your bedroom into a dark, acoustics-optimized remote editing studio.</p>
+
+                    <div class="space-y-5">
+                        <div class="bg-slate-900/60 p-4 rounded-2xl border border-slate-800/80">
+                            <div class="flex justify-between items-center text-xs font-bold mb-2">
+                                <span class="text-slate-300 flex items-center gap-2">
+                                    <span class="w-2 h-2 rounded-full bg-amber-400"></span> Bed Base (Structural Ergonomics)
+                                </span>
+                                <span class="text-white mono font-black">R 2,000.00</span>
+                            </div>
+                            <div class="w-full bg-slate-800 rounded-full h-2">
+                                <div class="bg-amber-400 h-2 rounded-full w-0 transition-all duration-500" id="progress-bed"></div>
+                            </div>
+                            <p class="text-[10px] text-slate-500 mt-2">Replaces worn frame. Critical for back health during long editing sessions.</p>
+                        </div>
+
+                        <div class="bg-slate-900/60 p-4 rounded-2xl border border-slate-800/80">
+                            <div class="flex justify-between items-center text-xs font-bold mb-2">
+                                <span class="text-slate-300 flex items-center gap-2">
+                                    <span class="w-2 h-2 rounded-full bg-amber-400"></span> Lined Curtains (2.5m Doorway)
+                                </span>
+                                <span class="text-white mono font-black">R 800.00</span>
+                            </div>
+                            <div class="w-full bg-slate-800 rounded-full h-2">
+                                <div class="bg-amber-400 h-2 rounded-full w-0 transition-all duration-500" id="progress-curtains"></div>
+                            </div>
+                            <p class="text-[10px] text-slate-500 mt-2">Mr Price Home 2x Medium Grey Lined Drops. Eliminates screen glare & sound bleed.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-6 pt-4 border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-400">
+                    <span>Combined Upgrade Outflow</span>
+                    <span class="font-black text-white mono">R 2,800.00</span>
+                </div>
+            </div>
+
+            <!-- PS5 Lay-By Strategy Card -->
+            <div class="glass-panel p-6 sm:p-7 rounded-2xl sm:rounded-3xl border border-blue-900/40 relative overflow-hidden flex flex-col justify-between">
+                <div>
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-black text-white flex items-center gap-2">
+                            PS5 Lay-by Target
+                            <span class="text-[10px] font-bold bg-[#00439c] text-white px-2.5 py-0.5 rounded-full uppercase">Goal: Today</span>
+                        </h3>
+                        <span class="text-xs font-black text-blue-400 mono">R 12,899.00</span>
+                    </div>
+
+                    <div class="bg-blue-950/40 border border-blue-800/40 p-4 rounded-2xl mb-5 space-y-3">
+                        <div class="flex justify-between text-xs">
+                            <span class="text-slate-400">Old Savings Pot:</span>
+                            <span class="text-slate-500 line-through mono">R 645.00</span>
+                        </div>
+                        <div class="flex justify-between text-xs">
+                            <span class="text-slate-400">Real Debrid Deduction:</span>
+                            <span class="text-red-400 font-bold mono">- R 58.00</span>
+                        </div>
+                        <div class="flex justify-between text-xs pt-2 border-t border-blue-900/60 font-bold">
+                            <span class="text-blue-200">Current Savings Pot Cash:</span>
+                            <span class="text-amber-400 mono">R 587.00</span>
+                        </div>
+                        <div class="flex justify-between text-xs font-bold">
+                            <span class="text-blue-200">Salary Top-up Contribution:</span>
+                            <span class="text-emerald-400 mono">+ R 2,670.00</span>
+                        </div>
+                        <div class="flex justify-between text-sm pt-2 border-t border-blue-800/80 font-black">
+                            <span class="text-white">Store Deposit Paid Today:</span>
+                            <span class="text-white mono text-base">R 3,257.00</span>
+                        </div>
+                    </div>
+
+                    <div class="space-y-2">
+                        <div class="flex justify-between text-xs font-bold">
+                            <span class="text-slate-400">Lay-by Security Progress</span>
+                            <span class="text-blue-400 mono">25.2% Secured</span>
+                        </div>
+                        <div class="w-full bg-slate-800 rounded-full h-2.5">
+                            <div class="bg-gradient-to-r from-blue-500 to-[#00439c] h-2.5 rounded-full w-[25.2%]"></div>
+                        </div>
+                        <p class="text-[10px] text-slate-400 italic text-center mt-2">Remaining balance of R 9,642.00 split over August & September salaries.</p>
+                    </div>
+                </div>
+
+                <div class="mt-6 pt-4 border-t border-slate-800/80 flex items-center justify-between text-xs">
+                    <span class="text-slate-400">Storeroom Guarantee</span>
+                    <span class="text-emerald-400 font-bold flex items-center gap-1">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                        100% Reserved
+                    </span>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 4: WEEKEND WATERFALL SIMULATOR & SURVIVAL COMPASS -->
+        <section class="glass-panel p-6 sm:p-8 rounded-2xl sm:rounded-3xl border border-slate-800 relative overflow-hidden">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+                <div>
+                    <h3 class="text-lg sm:text-xl font-black text-white tracking-tight flex items-center gap-2">
+                        Survival Compass & Waterfall Simulator
+                    </h3>
+                    <p class="text-xs text-slate-400 mt-1">Slide expected weekday spends (Mon–Fri) to see how your Friday weekend pool grows dynamically!</p>
+                </div>
+                
+                <button onclick="resetWaterfall()" class="touch-target text-xs font-bold text-slate-400 hover:text-white bg-slate-800/80 hover:bg-slate-700 px-3 py-1.5 rounded-xl border border-slate-700 transition active:scale-95">
+                    Reset Sliders
+                </button>
+            </div>
+
+            <!-- Waterfall Cards Container -->
+            <div id="waterfall-container" class="grid grid-cols-1 sm:grid-cols-5 gap-3 sm:gap-4 mb-8">
+                <!-- JS injected sliders -->
+            </div>
+
+            <!-- Friday Weekend Result -->
+            <div class="bg-gradient-to-r from-slate-900 via-blue-950/60 to-slate-900 border border-blue-800/40 p-5 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center shrink-0">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
+                    </div>
+                    <div>
+                        <p class="text-xs font-bold text-slate-300">The Friday Weekend Payoff</p>
+                        <p class="text-xs text-slate-400">By keeping weekdays low (coffee/home meal), your weekend fun cash multiplies.</p>
+                    </div>
+                </div>
+                <div class="text-center sm:text-right w-full sm:w-auto">
+                    <p class="text-[9px] uppercase font-bold tracking-wider text-slate-400">Estimated Friday Pocket Pool</p>
+                    <p id="friday-pool-display" class="text-2xl sm:text-3xl font-black text-emerald-400 mono">R 44.85</p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="max-w-5xl mx-auto px-4 sm:px-6 py-8 text-center border-t border-slate-800/60 mt-12">
+        <p class="text-xs font-bold text-slate-500 uppercase tracking-widest">Master Audit V5.1 | July 2026 Sprint</p>
+        <p class="text-[10px] text-slate-600 mt-1">Cape Town Remote Workspace & PS5 Guarantee Plan</p>
+    </footer>
+
+    <!-- MODAL 1: BANK SYNC MODAL -->
+    <div id="sync-modal" onclick="if(event.target===this) closeSyncModal()" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md hidden z-[100] items-end sm:items-center justify-center p-0 sm:p-4 transition-all">
+        <div class="bg-slate-900 border border-slate-800 rounded-t-[2rem] sm:rounded-3xl p-6 sm:p-8 max-w-sm w-full shadow-2xl transform transition-all pb-safe">
+            <div class="w-12 h-1.5 bg-slate-700 rounded-full mx-auto mb-4 sm:hidden"></div>
+            <div class="flex justify-between items-center mb-4 sm:mb-6">
+                <h3 class="text-lg sm:text-xl font-black text-white">Sync Capitec Balance</h3>
+                <button onclick="closeSyncModal()" class="touch-target text-slate-400 hover:text-white bg-slate-800 rounded-full p-2 transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            <p class="text-xs sm:text-sm text-slate-400 mb-5 leading-relaxed">Update your live Capitec balance here whenever money moves. Your baseline survival budget will dynamically recalculate for remaining days.</p>
+            
+            <div class="relative mb-6">
+                <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-lg">R</span>
+                <input type="number" inputmode="decimal" id="sync-balance-input" class="w-full bg-slate-950 border border-slate-700 rounded-2xl text-white font-black pl-10 pr-4 py-3.5 text-lg sm:text-xl focus:outline-none focus:ring-2 focus:ring-[#00439c] focus:border-transparent transition-all" value="8626.36">
+            </div>
+            
+            <button onclick="saveSync()" class="w-full bg-[#00439c] hover:bg-blue-700 active:scale-95 text-white font-bold py-3.5 sm:py-4 rounded-2xl transition-all shadow-lg shadow-[#00439c]/30 text-sm touch-target">
+                Synchronize Tracker
+            </button>
+        </div>
+    </div>
+
+    <!-- MODAL 2: EDIT/ADD TRANSACTION MODAL -->
+    <div id="edit-item-modal" onclick="if(event.target===this) closeEditItemModal()" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md hidden z-[100] items-end sm:items-center justify-center p-0 sm:p-4 transition-all">
+        <div class="bg-slate-900 border border-slate-800 rounded-t-[2rem] sm:rounded-3xl p-6 sm:p-8 max-w-sm w-full shadow-2xl transform transition-all pb-safe">
+            <div class="w-12 h-1.5 bg-slate-700 rounded-full mx-auto mb-4 sm:hidden"></div>
+            <div class="flex justify-between items-center mb-4 sm:mb-6">
+                <h3 id="edit-item-title" class="text-lg sm:text-xl font-black text-white">Edit Transaction</h3>
+                <button onclick="closeEditItemModal()" class="touch-target text-slate-400 hover:text-white bg-slate-800 rounded-full p-2 transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            <input type="hidden" id="edit-item-id" value="">
+            
+            <div class="space-y-4 mb-6">
+                <div>
+                    <label class="text-[10px] sm:text-xs font-bold text-slate-400 uppercase block mb-1">Transaction Name</label>
+                    <input type="text" id="edit-item-name" class="w-full bg-slate-950 border border-slate-700 rounded-xl text-white font-bold px-3.5 py-3 text-base focus:outline-none focus:ring-2 focus:ring-[#00439c] transition-all" placeholder="e.g. Phone Contract">
+                </div>
+                <div>
+                    <label class="text-[10px] sm:text-xs font-bold text-slate-400 uppercase block mb-1">Amount (ZAR)</label>
+                    <div class="relative">
+                        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold">R</span>
+                        <input type="number" inputmode="decimal" id="edit-item-amount" class="w-full bg-slate-950 border border-slate-700 rounded-xl text-white font-black pl-10 pr-4 py-3 text-base sm:text-lg focus:outline-none focus:ring-2 focus:ring-[#00439c] transition-all" placeholder="0.00">
+                    </div>
+                </div>
+                <div>
+                    <label class="text-[10px] sm:text-xs font-bold text-slate-400 uppercase block mb-1">Category</label>
+                    <select id="edit-item-category" class="w-full bg-slate-950 border border-slate-700 rounded-xl text-white font-bold px-3.5 py-3 text-base focus:outline-none focus:ring-2 focus:ring-[#00439c] transition-all">
+                        <option value="fixed">Fixed Cost / Subscription</option>
+                        <option value="upgrade">Upgrade / Goal</option>
+                        <option value="debt">Debt / Clearance</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="flex gap-2">
+                <button id="delete-item-btn" onclick="deleteCurrentItem()" class="hidden bg-red-950/80 hover:bg-red-900 text-red-300 font-bold py-3.5 px-4 rounded-xl text-xs transition-all border border-red-800/80 active:scale-95 touch-target">
+                    Delete
+                </button>
+                <button onclick="saveItemEdit()" class="flex-1 bg-[#00439c] hover:bg-blue-700 active:scale-95 text-white font-bold py-3.5 rounded-xl transition-all shadow-lg shadow-[#00439c]/30 text-sm touch-target">
+                    Save Transaction
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST NOTIFICATION BANNER -->
+    <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-slate-800 border border-slate-700 text-white text-xs font-bold px-4 py-3 rounded-2xl shadow-2xl flex items-center gap-2 transform translate-y-20 opacity-0 transition-all pointer-events-none z-[120]">
+        <span id="toast-icon" class="text-emerald-400">✓</span>
+        <span id="toast-msg">Notification message</span>
+    </div>
+
+    <script>
+        const DEFAULT_STATE = {
+            bankBalance: 8626.36,
+            todayRollover: 0.00,
+            pendingItems: [
+                { id: 1, name: 'PS5 Lay-by Deposit', amount: 3257.00, category: 'upgrade', paid: false },
+                { id: 2, name: 'Bed Base Upgrade', amount: 2000.00, category: 'upgrade', paid: false },
+                { id: 3, name: 'Lined Curtains (2x Drops)', amount: 800.00, category: 'upgrade', paid: false },
+                { id: 4, name: 'Phone Contract', amount: 599.00, category: 'fixed', paid: false },
+                { id: 5, name: 'Insurance', amount: 215.00, category: 'fixed', paid: false },
+                { id: 6, name: 'Meds (Fixed)', amount: 139.00, category: 'fixed', paid: false },
+                { id: 7, name: 'Google Storage', amount: 104.00, category: 'fixed', paid: false },
+                { id: 8, name: 'Apple Music', amount: 69.00, category: 'fixed', paid: false },
+                { id: 9, name: 'Apple iCloud', amount: 59.00, category: 'fixed', paid: false },
+                { id: 10, name: 'Takealot (Fixed)', amount: 39.00, category: 'fixed', paid: false },
+                
+                // Already cleared items
+                { id: 101, name: 'Home Contribution', amount: 500.00, category: 'fixed', paid: true },
+                { id: 102, name: 'Woolworths Store Card', amount: 150.00, category: 'debt', paid: true },
+                { id: 103, name: 'PayJustNow Installment', amount: 183.00, category: 'debt', paid: true },
+                { id: 104, name: 'Uber One Subscription', amount: 50.00, category: 'fixed', paid: true }
+            ]
+        };
+
+        // Load state from localStorage or default
+        let state = JSON.parse(localStorage.getItem('july_audit_state_v5')) || DEFAULT_STATE;
+
+        // Simulator Spends Mon-Fri
+        let waterfallSpends = [0, 0, 0, 0, 0];
+
+        function saveState() {
+            localStorage.setItem('july_audit_state_v5', JSON.stringify(state));
+            updateDashboard();
+        }
+
+        function getDaysUntilPayday() {
+            const now = new Date();
+            // Aug 24, 2026 payday target
+            const payday = new Date(2026, 7, 24); 
+            const diffTime = payday - now;
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            return Math.max(1, diffDays);
+        }
+
+        function updateDashboard() {
+            // Calculate pending vs paid totals
+            const pendingTotal = state.pendingItems
+                .filter(item => !item.paid)
+                .reduce((sum, item) => sum + item.amount, 0);
+
+            const paidTotal = state.pendingItems
+                .filter(item => item.paid)
+                .reduce((sum, item) => sum + item.amount, 0);
+
+            const pendingCount = state.pendingItems.filter(item => !item.paid).length;
+            const daysLeft = getDaysUntilPayday();
+
+            // Survival Pool & Baseline calculation
+            const survivalPool = Math.max(0, state.bankBalance - pendingTotal);
+            const dailyBaseline = survivalPool / daysLeft;
+            const todayTotalBudget = dailyBaseline + state.todayRollover;
+
+            // DOM Updates Header & Nav
+            document.getElementById('nav-balance').innerText = `R ${state.bankBalance.toLocaleString('en-ZA', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            document.getElementById('cycle-info').innerText = `${daysLeft} Days remaining until Aug 24 Payday`;
+
+            // Daily Tracker Numbers
+            document.getElementById('live-today-budget').innerText = todayTotalBudget.toFixed(2);
+            document.getElementById('live-rollover').innerText = state.todayRollover.toFixed(2);
+
+            // Overview Cards
+            document.getElementById('stat-cleared').innerText = `R ${paidTotal.toLocaleString('en-ZA', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            document.getElementById('stat-pending').innerText = `R ${pendingTotal.toLocaleString('en-ZA', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            document.getElementById('stat-pending-count').innerText = `${pendingCount} Items`;
+            
+            document.getElementById('stat-survival-pool').innerText = `R ${survivalPool.toLocaleString('en-ZA', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            document.getElementById('stat-daily-baseline').innerText = `R ${dailyBaseline.toFixed(2)} / d`;
+
+            // Studio Upgrades Progress
+            const bedItem = state.pendingItems.find(i => i.id === 2);
+            const curtainItem = state.pendingItems.find(i => i.id === 3);
+            document.getElementById('progress-bed').style.width = bedItem && bedItem.paid ? '100%' : '0%';
+            document.getElementById('progress-curtains').style.width = curtainItem && curtainItem.paid ? '100%' : '0%';
+
+            renderLedger();
+            updateWaterfall(dailyBaseline);
+        }
+
+        function renderLedger() {
+            const pendingContainer = document.getElementById('ledger-pending-items');
+            const paidContainer = document.getElementById('ledger-paid-items');
+
+            pendingContainer.innerHTML = '';
+            paidContainer.innerHTML = '';
+
+            const pendingList = state.pendingItems.filter(i => !i.paid);
+            const paidList = state.pendingItems.filter(i => i.paid);
+
+            document.getElementById('pending-total-badge').innerText = `R ${pendingList.reduce((s, i) => s + i.amount, 0).toFixed(2)}`;
+            document.getElementById('paid-total-badge').innerText = `R ${paidList.reduce((s, i) => s + i.amount, 0).toFixed(2)}`;
+
+            if (pendingList.length === 0) {
+                pendingContainer.innerHTML = `<p class="text-xs text-slate-500 italic p-3 text-center">All obligations cleared!</p>`;
+            } else {
+                pendingList.forEach(item => {
+                    pendingContainer.appendChild(createLedgerRow(item));
+                });
+            }
+
+            if (paidList.length === 0) {
+                paidContainer.innerHTML = `<p class="text-xs text-slate-500 italic p-3 text-center">No cleared items logged yet.</p>`;
+            } else {
+                paidList.forEach(item => {
+                    paidContainer.appendChild(createLedgerRow(item));
+                });
+            }
+        }
+
+        function createLedgerRow(item) {
+            const div = document.createElement('div');
+            div.className = `flex justify-between items-center p-3 rounded-xl border transition-all ${
+                item.paid 
+                    ? 'bg-slate-900/40 border-slate-800/60 opacity-60' 
+                    : 'bg-slate-900/90 border-slate-800 shadow-sm hover:border-slate-700'
+            }`;
+
+            div.innerHTML = `
+                <div class="flex items-center gap-3 overflow-hidden pr-2 flex-1">
+                    <label class="touch-target shrink-0 -m-1 p-1 cursor-pointer">
+                        <input type="checkbox" ${item.paid ? 'checked' : ''} onchange="togglePaid(${item.id})" class="w-5 h-5 rounded border-slate-700 bg-slate-950 text-[#00439c] focus:ring-[#00439c] cursor-pointer">
+                    </label>
+                    <span class="text-xs sm:text-sm font-bold truncate ${item.paid ? 'line-through text-slate-400' : 'text-slate-200'}">${item.name}</span>
+                </div>
+                <div class="flex items-center gap-2 shrink-0">
+                    <span class="text-xs sm:text-sm font-black mono ${item.paid ? 'text-slate-500' : 'text-white'}">R ${item.amount.toFixed(2)}</span>
+                    <button onclick="openEditItemModal(${item.id})" class="touch-target text-slate-500 hover:text-slate-300 p-1.5 rounded-lg hover:bg-slate-800 transition active:scale-90" title="Edit Transaction">
+                        <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                    </button>
+                </div>
+            `;
+            return div;
+        }
+
+        function togglePaid(id) {
+            const item = state.pendingItems.find(i => i.id === id);
+            if (item) {
+                item.paid = !item.paid;
+                saveState();
+                showToast(item.paid ? `Cleared: ${item.name}` : `Moved to Pending: ${item.name}`);
+            }
+        }
+
+        function lockInSpend() {
+            const input = document.getElementById('spend-input');
+            const spend = parseFloat(input.value) || 0;
+            
+            const daysLeft = getDaysUntilPayday();
+            const pendingTotal = state.pendingItems.filter(i => !i.paid).reduce((sum, item) => sum + item.amount, 0);
+            const survivalPool = Math.max(0, state.bankBalance - pendingTotal);
+            const dailyBaseline = survivalPool / daysLeft;
+            const todayBudget = dailyBaseline + state.todayRollover;
+
+            const leftover = Math.max(0, todayBudget - spend);
+            state.todayRollover = leftover;
+            
+            if (spend > 0) {
+                state.bankBalance = Math.max(0, state.bankBalance - spend);
+            }
+
+            input.value = '';
+            saveState();
+            showToast(`Spend locked in! R ${leftover.toFixed(2)} rolled over to tomorrow.`);
+        }
+
+        function openSyncModal() {
+            document.getElementById('sync-balance-input').value = state.bankBalance;
+            document.getElementById('sync-modal').classList.add('modal-active');
+        }
+
+        function closeSyncModal() {
+            document.getElementById('sync-modal').classList.remove('modal-active');
+        }
+
+        function saveSync() {
+            const val = parseFloat(document.getElementById('sync-balance-input').value) || 0;
+            state.bankBalance = val;
+            saveState();
+            closeSyncModal();
+            showToast('Capitec bank balance synchronized!');
+        }
+
+        function openEditItemModal(id) {
+            const title = document.getElementById('edit-item-title');
+            const deleteBtn = document.getElementById('delete-item-btn');
+            
+            if (id === null) {
+                title.innerText = 'Add New Transaction';
+                document.getElementById('edit-item-id').value = '';
+                document.getElementById('edit-item-name').value = '';
+                document.getElementById('edit-item-amount').value = '';
+                document.getElementById('edit-item-category').value = 'fixed';
+                deleteBtn.classList.add('hidden');
+            } else {
+                const item = state.pendingItems.find(i => i.id === id);
+                if (!item) return;
+                title.innerText = 'Edit Transaction';
+                document.getElementById('edit-item-id').value = item.id;
+                document.getElementById('edit-item-name').value = item.name;
+                document.getElementById('edit-item-amount').value = item.amount;
+                document.getElementById('edit-item-category').value = item.category || 'fixed';
+                deleteBtn.classList.remove('hidden');
+            }
+
+            document.getElementById('edit-item-modal').classList.add('modal-active');
+        }
+
+        function closeEditItemModal() {
+            document.getElementById('edit-item-modal').classList.remove('modal-active');
+        }
+
+        function saveItemEdit() {
+            const idVal = document.getElementById('edit-item-id').value;
+            const name = document.getElementById('edit-item-name').value.trim();
+            const amount = parseFloat(document.getElementById('edit-item-amount').value) || 0;
+            const category = document.getElementById('edit-item-category').value;
+
+            if (!name) {
+                showToast('Please enter a transaction name', 'error');
+                return;
+            }
+
+            if (idVal === '') {
+                // Add new item
+                const newId = Date.now();
+                state.pendingItems.push({
+                    id: newId,
+                    name: name,
+                    amount: amount,
+                    category: category,
+                    paid: false
+                });
+                showToast(`Added: ${name}`);
+            } else {
+                // Edit existing
+                const id = parseInt(idVal);
+                const item = state.pendingItems.find(i => i.id === id);
+                if (item) {
+                    item.name = name;
+                    item.amount = amount;
+                    item.category = category;
+                    showToast(`Updated: ${name}`);
+                }
+            }
+
+            saveState();
+            closeEditItemModal();
+        }
+
+        function deleteCurrentItem() {
+            const idVal = document.getElementById('edit-item-id').value;
+            if (!idVal) return;
+            const id = parseInt(idVal);
+            state.pendingItems = state.pendingItems.filter(i => i.id !== id);
+            saveState();
+            closeEditItemModal();
+            showToast('Transaction deleted');
+        }
+
+        function resetWaterfall() {
+            waterfallSpends = [0, 0, 0, 0, 0];
+            updateDashboard();
+        }
+
+        function updateWaterfallSpend(index, val) {
+            waterfallSpends[index] = parseFloat(val) || 0;
+            const daysLeft = getDaysUntilPayday();
+            const pendingTotal = state.pendingItems.filter(i => !i.paid).reduce((s, i) => s + i.amount, 0);
+            const survivalPool = Math.max(0, state.bankBalance - pendingTotal);
+            const dailyBaseline = survivalPool / daysLeft;
+            updateWaterfall(dailyBaseline);
+        }
+
+        function updateWaterfall(dailyBaseline) {
+            const container = document.getElementById('waterfall-container');
+            container.innerHTML = '';
+
+            const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+            let currentPool = dailyBaseline;
+
+            days.forEach((day, i) => {
+                const spend = waterfallSpends[i];
+                const rollover = Math.max(0, currentPool - spend);
+
+                const card = document.createElement('div');
+                card.className = 'bg-slate-900/80 border border-slate-800 p-3.5 rounded-2xl flex flex-col justify-between h-44 shadow-sm';
+                card.innerHTML = `
+                    <div class="flex justify-between items-center text-[10px] font-bold text-slate-400 uppercase">
+                        <span>${day}</span>
+                        <span class="mono text-white">R ${currentPool.toFixed(2)}</span>
+                    </div>
+                    
+                    <div class="my-2 space-y-1">
+                        <div class="flex justify-between text-[10px] font-bold">
+                            <span class="text-slate-400">Target Spend:</span>
+                            <span class="text-[#ea580c] mono">R ${spend}</span>
+                        </div>
+                        <input type="range" min="0" max="${Math.round(dailyBaseline * 2)}" value="${spend}" step="5"
+                            class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-[#ea580c]"
+                            oninput="updateWaterfallSpend(${i}, this.value)">
+                    </div>
+
+                    <div class="pt-2 border-t border-slate-800/80 flex items-center justify-between text-[10px] font-bold">
+                        <span class="text-slate-400">Rollover:</span>
+                        <span class="mono text-emerald-400">+ R ${rollover.toFixed(2)}</span>
+                    </div>
+                `;
+
+                container.appendChild(card);
+                currentPool = dailyBaseline + rollover;
+            });
+
+            document.getElementById('friday-pool-display').innerText = `R ${currentPool.toFixed(2)}`;
+        }
+
+        function startLiveClock() {
+            function tick() {
+                const now = new Date();
+                const timeStr = now.toLocaleTimeString('en-ZA', { hour12: false });
+                document.getElementById('live-clock').innerText = timeStr;
+            }
+            tick();
+            setInterval(tick, 1000);
+        }
+
+        function showToast(msg, type = 'success') {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toast-msg');
+            const toastIcon = document.getElementById('toast-icon');
+
+            toastMsg.innerText = msg;
+            toastIcon.innerText = type === 'error' ? '✕' : '✓';
+            toastIcon.className = type === 'error' ? 'text-red-400 font-bold' : 'text-emerald-400 font-bold';
+
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            toast.classList.add('translate-y-0', 'opacity-100');
+
+            setTimeout(() => {
+                toast.classList.remove('translate-y-0', 'opacity-100');
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3000);
+        }
+
+        // Initialize on load
+        window.onload = function() {
+            startLiveClock();
+            updateDashboard();
+        };
+    </script>
+</body>
+</html>
